@@ -2,6 +2,9 @@ if (process.env.NODE_ENV != "production") {
   require("dotenv").config();
 }
 
+console.log(process.env);
+
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -11,6 +14,8 @@ const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const ExpressError = require("./utils/ExpressError.js");
+const { required } = require("joi");
+const { wrap } = require("module");
 const session = require("express-session");
 const MongoStore = require('connect-mongo');
 const flash = require("connect-flash");
@@ -18,24 +23,22 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
-// Routers
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 
-// Models
-const Listing = require("./models/listing.js");
-
-
 main()
-  .then(() => console.log(" Connected to DB"))
-  .catch((err) => console.log("DB Error", err));
+  .then(() => {
+    console.log("connected to DB");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 async function main() {
   await mongoose.connect(dbUrl);
 }
 
-// View Engine + Static Files
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
@@ -43,22 +46,23 @@ app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
 
-// Session Store
-const store = MongoStore.create({
-  mongoUrl: dbUrl,
+const  store = MongoStore.create({ 
+  
+  mongoUrl:dbUrl,
   crypto: {
     secret: process.env.SECRET,
   },
-  touchAfter: 24 * 3600
-});
+  touchAfter: 24*3600
+})
 
-store.on("error", (err) => {
-  console.log(" ERROR IN MONGO SESSION STORE", err);
+store.on("error" , ()=>{
+  console.log("ERROR IN MONGO SESSION CODE" , err);
+  
 });
 
 const sessionOptions = {
   store,
-  secret: process.env.SECRET,
+  secret:  process.env.SECRET,
   resave: false,
   saveUnintialized: true,
   cookie: {
@@ -68,9 +72,16 @@ const sessionOptions = {
   },
 };
 
-// Middlewares
+
+
+
+
+// Flash and Express-session use
+
 app.use(session(sessionOptions));
 app.use(flash());
+
+//Passports-----------
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -88,33 +99,23 @@ app.use((req, res, next) => {
 });
 
 
-app.get("/", async (req, res) => {
-  try {
-    const listings = await Listing.find({});
-    res.render("listings/index.ejs", { listings });
-  } catch (err) {
-    console.error(err);
-    req.flash("error", "Unable to load listings");
-    res.redirect("/listings");
-  }
-});
 
-// Routers
+//Express - Router for Listing
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
-// Error Handling
+//Error Handling : Middleware
 app.all("*", (req, res, next) => {
   next(new ExpressError(404, "Page Not Found!"));
 });
 
 app.use((err, req, res, next) => {
   let { statusCode = 500, message = "Something went wrong" } = err;
+
   res.status(statusCode).render("error.ejs", { err });
 });
 
-// Server
 app.listen(8080, () => {
-  console.log("🚀 Server is listening on port 8080");
+  console.log("server is listening to you");
 });
