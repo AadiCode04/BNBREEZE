@@ -100,6 +100,18 @@ app.use((req, res, next) => {
 
 
 
+
+app.get("/", async (req, res) => {
+  try {
+    const listings = await Listing.find();
+    res.render("listings/index.ejs", { listings });
+  } catch (err) {
+    console.log(err);
+    res.redirect("/listings"); 
+  }
+});
+
+
 //Express - Router for Listing
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
