@@ -20,8 +20,14 @@ My full-stack web development project, BnBreeze (an Airbnb-style website)
 💻 My Complete Tech Stack:
 
 • Frontend: HTML, CSS, JavaScript, EJS (for templating).
+
 • Backend: Node.js, Express.js.
+
 • Database: MongoDB Atlas, Mongoose ODM.
+
 • Authentication: Passport.js, Passport-Local-Mongoose.
+
 • Middleware: Express-Session, Connect-Flash, Multer.
+
 • Cloud Services: Cloudinary (Image Storage), MapTiler (Geocoding).
+
